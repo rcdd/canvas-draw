@@ -1,0 +1,38 @@
+<html>
+<script>const exports = {}; </script>
+<body>
+<h1>Hello Canvasdraw!!</h1>
+<button id="clear">Clear</button>
+<button id="undo">Undo</button>
+<button id="save">Save Image</button>
+<div id="wrapper"></div>
+<label>Line Width: <input id="lineWidth" type="number" max="50" value="8"></label>
+<label>Line Color: <input id="lineColor" type="color"></label>
+
+<script src="dist/canvasdraw.js"></script>
+<script src="assets/image.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+        const canvasDraw = new CanvasDraw({
+            background: ImageSample(),
+            parentElement: '#wrapper'
+        });
+        document.getElementById('clear').addEventListener('click', function () {
+            canvasDraw.clear();
+        });
+        document.getElementById('undo').addEventListener('click', function () {
+            canvasDraw.undo();
+        });
+        document.getElementById('save').addEventListener('click', function () {
+            console.log(canvasDraw.save());
+        });
+        document.getElementById('lineWidth').addEventListener('change', function (e) {
+            canvasDraw.update({lineWidth: e.target.value});
+        });
+        document.getElementById('lineColor').addEventListener('change', function (e) {
+            canvasDraw.update({lineColor: e.target.value});
+        });
+    });
+</script>
+</body>
+</html>
