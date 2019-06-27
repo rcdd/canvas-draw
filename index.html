@@ -1,16 +1,18 @@
 <html>
 <script>const exports = {}; </script>
 <body>
-<h1>Hello Canvasdraw!!</h1>
+<h1>Hello CanvasDraw!!</h1>
 <button id="clear">Clear</button>
 <button id="undo">Undo</button>
 <button id="save">Save Image</button>
 <div id="wrapper"></div>
 <label>Line Width: <input id="lineWidth" type="number" max="50" value="8"></label>
 <label>Line Color: <input id="lineColor" type="color"></label>
-
+<h4 style="position: fixed; left: 0; bottom: 0">Made with ❤️ by Ruben Domingues 👉 <a
+        href="https://github.com/rcdd/canvas-draw">GitHub</a>.</h4>
+</body>
 <script src="dist/canvasdraw.js"></script>
-<script src="assets/image.js"></script>
+<script src="assets/imageSample.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function (event) {
         const canvasDraw = new CanvasDraw({
@@ -26,13 +28,12 @@
         document.getElementById('save').addEventListener('click', function () {
             console.log(canvasDraw.save());
         });
-        document.getElementById('lineWidth').addEventListener('change', function (e) {
+        document.getElementById('lineWidth').addEventListener('input', function (e) {
             canvasDraw.update({lineWidth: e.target.value});
         });
-        document.getElementById('lineColor').addEventListener('change', function (e) {
+        document.getElementById('lineColor').addEventListener('input', function (e) {
             canvasDraw.update({lineColor: e.target.value});
         });
     });
 </script>
-</body>
 </html>
