@@ -1,5 +1,10 @@
 {
-  "presets": ["es2015", "stage-2"],
+  "presets": [
+    [
+      "@babel/preset-env"
+    ]
+  ],
+  "plugins": [],
   "sourceMaps": true,
-  "retainLines": true
+  "retainLines": false
 }

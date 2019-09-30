@@ -1,266 +1,276 @@
-export class CanvasDraw {
-    config;
-    canvas;
-    cx;
-    image;
-    strokePoints;
-    timeoutResize;
-    eventPrevPoint;
-    isTouch;
+'use strict';
 
-    /**
-     * Create a CanvasDraw.
-     * @param {Object} options - Optional settings object.
-     */
-    constructor(options) {
-        // Merge defaults with user's settings
-        this.config = CanvasDraw.assignOptions(options);
+const CanvasDraw = (function (options) {
+    let config;
+    let canvas;
+    let cx;
+    let image;
+    let strokePoints;
+    let timeoutResize;
+    let eventPrevPoint;
+    let isTouch;
 
-        this.canvas = document.createElement("canvas");
-        this.cx = this.canvas.getContext('2d');
+    function CanvasDraw(options) {
+        /**
+         * Merge default setting with user options
+         * @param {Object} options
+         */
+        this.assignOptions = function (options) {
+            const settings = {
+                background: undefined,
+                parentElement: undefined,
+                lineWidth: 8,
+                lineColor: '#000'
+            };
+            return Object.assign(settings, options);
+        };
 
-        if (!this.config.background) {
-            throw 'You need specify your base64 background image 😢';
-        }
+        this.init = function () {
+            this.attachEvents();
 
-        if (this.config.lineWidth <= 0) {
-            throw 'Your line width should be higher than 0 😂';
-        }
+            const widthParent = config.parentElement ? config.parentElement.clientWidth : window.innerWidth;
 
-        if (this.config.parentElement) {
-            this.config.parentElement = document.querySelector(this.config.parentElement);
-            if (!this.config.parentElement) {
-                throw 'Parent Element not found 🤬!';
+            const width = this.fitScreen(widthParent) ? (widthParent - 16) : image.width;
+            const height = width * image.height / image.width;
+
+            canvas.width = width;
+            canvas.height = height;
+            cx.drawImage(image, 0, 0, width, height);
+            cx.lineCap = 'round';
+        };
+
+        this.fitScreen = function (widthParent) {
+            return (image.width > (widthParent - 16));
+        };
+
+        this.attachEvents = function () {
+            if (isTouch) {
+                canvas.addEventListener('touchstart', this.drawStartEvent);
+            } else {
+                canvas.addEventListener('mousedown', this.drawStartEvent);
             }
-            this.config.parentElement.appendChild(this.canvas);
-        } else {
-            document.body.appendChild(this.canvas);
-        }
+            window.addEventListener('resize', this.resizeEvent);
+        };
 
-        this.isTouch = this.isTouchDevice();
+        this.detachEvents = function () {
+            if (isTouch) {
+                canvas.addEventListener('touchstart', this.drawStartEvent);
+            } else {
+                canvas.addEventListener('mousedown', this.drawStartEvent);
+            }
+            window.removeEventListener('resize', this.resizeEvent);
+        };
 
-        this.image = new Image();
-        this.image.src = this.config.background;
-        this.image.onload = () => {
-            this.strokePoints = [];
+        this.resizeEvent = () => {
+            clearTimeout(timeoutResize);
+            timeoutResize = setTimeout(() => this.resizeHandler(), 500);
+        };
+
+        this.resizeHandler = function () {
+            this.detachEvents();
+            isTouch = this.isTouchDevice();
+            this.attachEvents();
+            strokePoints = [];
             this.init();
         };
-    }
 
-    /**
-     * Merge default setting with user options
-     * @param {Object} options
-     */
-    static assignOptions(options) {
-        const settings = {
-            background: undefined,
-            parentElement: undefined,
-            lineWidth: 8,
-            lineColor: '#000'
+        this.drawStartEvent = (ev) => {
+            ev.preventDefault();
+            strokePoints.push({ prevPos: undefined, currentPos: undefined, mode: ev.type });
+
+            if (isTouch) {
+                canvas.addEventListener('touchmove', this.drawEvent);
+                canvas.addEventListener('touchend', this.drawStopEvent);
+                canvas.addEventListener('touchcancel', this.drawStopEvent);
+            } else {
+                canvas.addEventListener('mousemove', this.drawEvent);
+                canvas.addEventListener('mouseup', this.drawStopEvent);
+                canvas.addEventListener('mouseleave', this.drawStopEvent);
+            }
         };
-        return Object.assign(settings, options);
-    }
 
-    init() {
-        this.attachEvents();
-
-        const widthParent = this.config.parentElement ? this.config.parentElement.clientWidth : window.innerWidth;
-
-        const width = this.fitScreen(widthParent) ? (widthParent - 16) : this.image.width;
-        const height = width * this.image.height / this.image.width;
-
-        this.canvas.width = width;
-        this.canvas.height = height;
-        this.cx.drawImage(this.image, 0, 0, width, height);
-        this.cx.lineCap = 'round';
-    }
-
-    fitScreen(widthParent) {
-        return (this.image.width > (widthParent - 16));
-    }
-
-    attachEvents() {
-        if (this.isTouch) {
-            this.canvas.addEventListener('touchstart', this.drawStartEvent);
-        } else {
-            this.canvas.addEventListener('mousedown', this.drawStartEvent);
-        }
-        window.addEventListener('resize', this.resizeEvent);
-    }
-
-    detachEvents() {
-        if (this.isTouch) {
-            this.canvas.addEventListener('touchstart', this.drawStartEvent);
-        } else {
-            this.canvas.addEventListener('mousedown', this.drawStartEvent);
-        }
-        window.removeEventListener('resize', this.resizeEvent);
-    }
-
-    resizeEvent = () => {
-        clearTimeout(this.timeoutResize);
-        this.timeoutResize = setTimeout(() => this.resizeHandler(), 500);
-    }
-
-    resizeHandler() {
-        this.detachEvents();
-        this.isTouch = this.isTouchDevice();
-        this.attachEvents();
-        this.strokePoints = [];
-        this.init();
-    }
-
-    drawStartEvent = (ev) => {
-        ev.preventDefault();
-        this.strokePoints.push({prevPos: undefined, currentPos: undefined, mode: ev.type});
-
-        if (this.isTouch) {
-            this.canvas.addEventListener('touchmove', this.drawEvent);
-            this.canvas.addEventListener('touchend', this.drawStopEvent);
-            this.canvas.addEventListener('touchcancel', this.drawStopEvent);
-        } else {
-            this.canvas.addEventListener('mousemove', this.drawEvent);
-            this.canvas.addEventListener('mouseup', this.drawStopEvent);
-            this.canvas.addEventListener('mouseleave', this.drawStopEvent);
-        }
-    }
-
-    drawEvent = (ev) => {
-        const rect = this.canvas.getBoundingClientRect();
-        let point;
-        if (this.isTouch) {
-            point = {
-                x: ev.touches[0].clientX - rect.left,
-                y: ev.touches[0].clientY - rect.top
+        this.drawEvent = (ev) => {
+            const rect = canvas.getBoundingClientRect();
+            let point;
+            if (isTouch) {
+                point = {
+                    x: ev.touches[0].clientX - rect.left,
+                    y: ev.touches[0].clientY - rect.top
+                }
+            } else {
+                point = {
+                    x: ev.clientX - rect.left,
+                    y: ev.clientY - rect.top
+                }
             }
-        } else {
-            point = {
-                x: ev.clientX - rect.left,
-                y: ev.clientY - rect.top
+
+            if (eventPrevPoint) {
+                const drawOptions = { lineWidth: config.lineWidth, lineColor: config.lineColor };
+                strokePoints.push({
+                    prevPos: eventPrevPoint,
+                    currentPos: point,
+                    mode: ev.type,
+                    options: drawOptions
+                });
+                this.drawOnCanvas(eventPrevPoint, point, drawOptions);
             }
-        }
+            eventPrevPoint = point;
+        };
 
-        if (this.eventPrevPoint) {
-            const drawOptions = {lineWidth: this.config.lineWidth, lineColor: this.config.lineColor};
-            this.strokePoints.push({
-                prevPos: this.eventPrevPoint,
-                currentPos: point,
-                mode: ev.type,
-                options: drawOptions
-            });
-            this.drawOnCanvas(this.eventPrevPoint, point, drawOptions);
-        }
-        this.eventPrevPoint = point;
-    }
-
-    drawStopEvent = () => {
-        if (this.eventPrevPoint) {
-            this.eventPrevPoint = undefined;
-        }
-        if (this.isTouch) {
-            this.canvas.removeEventListener('touchmove', this.drawEvent);
-            this.canvas.removeEventListener('touchend', this.drawStopEvent);
-            this.canvas.removeEventListener('touchcancel', this.drawStopEvent);
-        } else {
-            this.canvas.removeEventListener('mousemove', this.drawEvent);
-            this.canvas.removeEventListener('mouseup', this.drawStopEvent);
-            this.canvas.removeEventListener('mouseleave', this.drawStopEvent);
-        }
-    }
-
-    drawOnCanvas(prevPos, currentPos, drawOptions) {
-        this.cx.beginPath();
-
-        if (prevPos) {
-            this.cx.lineWidth = drawOptions.lineWidth;
-            this.cx.strokeStyle = drawOptions.lineColor;
-            this.cx.moveTo(prevPos.x, prevPos.y); // from
-            this.cx.lineTo(currentPos.x, currentPos.y);
-            this.cx.stroke();
-        }
-    }
-
-    isTouchDevice() {
-        var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
-        var mq = function (query) {
-            return window.matchMedia(query).matches;
-        }
-
-        if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
-            return true;
-        }
-
-        // include the 'heartz' as a way to have a non matching MQ to help terminate the join
-        // https://git.io/vznFH
-        var query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
-        return mq(query);
-    }
-
-    destroy() {
-        console.log('destroy');
-        this.detachEvents();
-    }
-
-
-    /************************************************************
-     *+++++++++++++++++++++ PUBLIC FUNCTIONS ++++++++++++++++++++
-     ***********************************************************/
-
-    undo = () => {
-        if (this.strokePoints.length === 0) {
-            return;
-        }
-
-        let mouseDown = false;
-        const eventTypes = ['down', 'start'];
-
-        for (let i = this.strokePoints.length - 1; i >= 0; i--) {
-            if (eventTypes.some(el => this.strokePoints[i].mode.includes(el))) {
-                this.strokePoints.pop();
-                mouseDown = true;
+        this.drawStopEvent = () => {
+            if (eventPrevPoint) {
+                eventPrevPoint = undefined;
             }
-            if (i === 0 || (mouseDown && this.strokePoints[i - 1].mode.includes('move'))) {
-                this.strokePoints = this.strokePoints.slice(0, i);
-                this.init();
-                this.strokePoints.forEach(point => {
-                    this.drawOnCanvas(point.prevPos, point.currentPos, point.options);
-                })
+            if (isTouch) {
+                canvas.removeEventListener('touchmove', this.drawEvent);
+                canvas.removeEventListener('touchend', this.drawStopEvent);
+                canvas.removeEventListener('touchcancel', this.drawStopEvent);
+            } else {
+                canvas.removeEventListener('mousemove', this.drawEvent);
+                canvas.removeEventListener('mouseup', this.drawStopEvent);
+                canvas.removeEventListener('mouseleave', this.drawStopEvent);
+            }
+        };
+
+        this.drawOnCanvas = function (prevPos, currentPos, drawOptions) {
+            cx.beginPath();
+
+            if (prevPos) {
+                cx.lineWidth = drawOptions.lineWidth;
+                cx.strokeStyle = drawOptions.lineColor;
+                cx.moveTo(prevPos.x, prevPos.y); // from
+                cx.lineTo(currentPos.x, currentPos.y);
+                cx.stroke();
+            }
+        };
+
+        this.isTouchDevice = function () {
+            let prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
+            const mq = function (query) {
+                return window.matchMedia(query).matches;
+            };
+
+            if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
+                return true;
+            }
+
+            // include the 'heartz' as a way to have a non matching MQ to help terminate the join
+            // https://git.io/vznFH
+            const query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
+            return mq(query);
+        };
+
+        this.destroy = function () {
+            console.log('destroy');
+            this.detachEvents();
+        };
+
+
+        /************************************************************
+         *+++++++++++++++++++++ PUBLIC FUNCTIONS ++++++++++++++++++++
+         ***********************************************************/
+
+        this.undo = function () {
+            if (strokePoints.length === 0) {
                 return;
             }
-        }
-    }
 
-    clear = () => {
-        this.strokePoints = [];
-        this.init();
-    }
+            let mouseDown = false;
+            const eventTypes = ['down', 'start'];
 
-    update = (obj) => {
-        for (let i = 0; i < Object.keys(obj).length; i++) {
-            this.config[Object.keys(obj)[i]] = obj[Object.keys(obj)[i]];
-        }
-    }
+            for (let i = strokePoints.length - 1; i >= 0; i--) {
+                if (eventTypes.some(el => strokePoints[i].mode.includes(el))) {
+                    strokePoints.pop();
+                    mouseDown = true;
+                }
+                if (i === 0 || (mouseDown && strokePoints[i - 1].mode.includes('move'))) {
+                    strokePoints = strokePoints.slice(0, i);
+                    this.init();
+                    strokePoints.forEach(point => {
+                        this.drawOnCanvas(point.prevPos, point.currentPos, point.options);
+                    });
+                    return;
+                }
+            }
+        };
 
-    save = (type) => {
-        var imageMimes = ['png', 'bmp', 'gif', 'jpg', 'jpeg', 'tiff'];
-        if (type) {
-            if (imageMimes.some(el => type.includes(el))) {
-                const image = new Image();
-                image.src = this.canvas.toDataURL('image/' + type);
-                this.config.onSave.call(this);
-                return image;
+        this.clear = function () {
+            strokePoints = [];
+            this.init();
+        };
+
+        this.update = function (obj) {
+            for (let i = 0; i < Object.keys(obj).length; i++) {
+                config[Object.keys(obj)[i]] = obj[Object.keys(obj)[i]];
+            }
+        };
+
+        this.save = function (type) {
+            const imageMimes = ['png', 'bmp', 'gif', 'jpg', 'jpeg', 'tiff'];
+            if (type) {
+                if (imageMimes.some(el => type.includes(el))) {
+                    const image = new Image();
+                    image.src = canvas.toDataURL('image/' + type);
+                    console.log(image);
+                    window.imageTest = image;
+                    // config.onSave.call(this);
+                    return image;
+                } else {
+                    throw ('No MIME type allowed 😭! Please use ' + imageMimes);
+                }
+            }
+            return canvas.toDataURL();
+        };
+
+        this.remove = function () {
+            try {
+                canvas.parentNode.removeChild(canvas);
+            } catch (e) {
+                console.error('Destroy action: Element no found!');
+            }
+        };
+
+        const _this = this;
+
+        function __init__() {
+            // Merge defaults with user's settings
+            config = _this.assignOptions(options);
+
+            canvas = document.createElement("canvas");
+            cx = canvas.getContext('2d');
+
+            if (!config.background) {
+                throw 'You need specify your base64 background image 😢';
+            }
+
+            if (config.lineWidth <= 0) {
+                throw 'Your line width should be higher than 0 😂';
+            }
+
+            if (config.parentElement) {
+                config.parentElement = document.querySelector(config.parentElement);
+                if (!config.parentElement) {
+                    throw 'Parent Element not found 🤬!';
+                }
+                config.parentElement.appendChild(canvas);
             } else {
-                throw ('No MIME type allowed 😭! Please use ' + imageMimes);
+                document.body.appendChild(canvas);
+            }
+
+            isTouch = _this.isTouchDevice();
+
+            image = new Image();
+            image.src = config.background;
+            image.onload = () => {
+                strokePoints = [];
+                _this.init();
             }
         }
-        return this.canvas.toDataURL();
+
+        __init__();
     }
 
-    destroy = () => {
-        try {
-            this.canvas.parentNode.removeChild(this.canvas);
-        } catch (e) {
-            console.error('Destroy action: Element no found!');
-        }
-    }
-}
+    return CanvasDraw;
+}());
+
+export default CanvasDraw;
