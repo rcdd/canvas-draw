@@ -1,5 +1,4 @@
 <html>
-<!--<script>const exports = {}; </script>-->
 <body>
 <h1>Hello CanvasDraw!!</h1>
 <button id="clear">Clear</button>
@@ -11,7 +10,7 @@
 <h4 style="position: fixed; left: 0; bottom: 0">Made with ❤️ by Ruben Domingues 👉 <a
         href="https://github.com/rcdd/canvas-draw">GitHub</a>.</h4>
 </body>
-<script>var exports = {};</script>
+<script>const exports = {};</script>
 <script src="dist/canvasdraw.js"></script>
 <script src="assets/imageSample.js"></script>
 
@@ -31,10 +30,10 @@
             console.log(canvasDraw.save('jpeg'));
         });
         document.getElementById('lineWidth').addEventListener('input', function (e) {
-            canvasDraw.update({lineWidth: e.target.value});
+            canvasDraw.update({ lineWidth: e.target.value });
         });
         document.getElementById('lineColor').addEventListener('input', function (e) {
-            canvasDraw.update({lineColor: e.target.value});
+            canvasDraw.update({ lineColor: e.target.value });
         });
     });
 </script>

@@ -213,7 +213,6 @@ const CanvasDraw = (function (options) {
                     image.src = canvas.toDataURL('image/' + type);
                     console.log(image);
                     window.imageTest = image;
-                    // config.onSave.call(this);
                     return image;
                 } else {
                     throw ('No MIME type allowed 😭! Please use ' + imageMimes);

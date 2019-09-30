@@ -253,8 +253,7 @@ var CanvasDraw = function (options) {
 
           _image.src = canvas.toDataURL('image/' + type);
           console.log(_image);
-          window.imageTest = _image; // config.onSave.call(this);
-
+          window.imageTest = _image;
           return _image;
         } else {
           throw 'No MIME type allowed 😭! Please use ' + imageMimes;
