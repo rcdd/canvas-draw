@@ -25,6 +25,7 @@
         });
         document.getElementById('undo').addEventListener('click', function () {
             canvasDraw.undo();
+            console.log(canvasDraw.hasStroke());
         });
         document.getElementById('save').addEventListener('click', function () {
             console.log(canvasDraw.save('jpeg'));

@@ -229,6 +229,10 @@ const CanvasDraw = (function (options) {
             }
         };
 
+        this.hasStroke = function () {
+            return strokePoints.length > 0;
+        };
+
         const _this = this;
 
         function __init__() {

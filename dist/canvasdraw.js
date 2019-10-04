@@ -271,6 +271,10 @@ var CanvasDraw = function (options) {
       }
     };
 
+    this.hasStroke = function () {
+      return strokePoints.length > 0;
+    };
+
     var _this = this;
 
     function __init__() {

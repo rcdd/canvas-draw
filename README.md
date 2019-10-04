@@ -10,6 +10,12 @@ import in your project like this:
 ```html
 <script src="assets/canvasdraw.js"></script>
 ```
+If you have any issues about <i>exports</i> variable, please add this line before the 
+<strong>CanvasDraw</strong> script include.
+```html
+<script>const exports = {};</script>
+````
+
 ##### With NPM:
 ```html
 (TBD)
@@ -39,6 +45,12 @@ const canvasDraw = new CanvasDraw(options);
 Do undo to canvas.
 ```javascript
     canvasDraw.undo();
+```
+
+##### hasStroke()
+return a true value if the image has any stroke/draw .
+```javascript
+    canvasDraw.hasStroke();
 ```
 
 ##### save()
